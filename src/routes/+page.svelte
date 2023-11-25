@@ -18,21 +18,34 @@
 </script>
 
 <main>
-    <ol>
+    <table>
+        <tr>
+            <th>Place</th>
+            <th>Player</th>
+            <th>Score</th>
+        </tr>
         {#each $sortedScores as score, index}
-            <li><ScoreboardEntry {score} place={index+1} /></li>
+            <ScoreboardEntry {score} place={index + 1} />
         {/each}
-    </ol>
+    </table>
+    {#if $scores.length == 0}
+        <p>Well, it looks like there are no submissions yet. Better start playing and get that highscore!</p>
+    {/if}
     <ReloadButton />
 </main>
 
 <style>
-    main{
+    main {
         display: flex;
         flex-direction: column;
         align-items: center;
+        font-size: 2rem;
     }
-    ol{
-        list-style-type: none;
+    table {
+        text-align: left;
+    }
+
+    th{
+        padding-right: 10px;
     }
 </style>
