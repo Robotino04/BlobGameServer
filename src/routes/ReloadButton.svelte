@@ -1,11 +1,9 @@
 <script>
-    import { scores } from "./stores";
+    import { invalidate } from "$app/navigation";
 </script>
 
 <button
     on:click={async () => {
-        const response = await fetch("/api/scores", { method: "GET" });
-        const data = await response.json();
-        scores.set(data.scores);
+        invalidate('/api/scores');
     }}>Reload</button
 >

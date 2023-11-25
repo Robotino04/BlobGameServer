@@ -7,12 +7,14 @@ export interface ScoreboardEntryData {
 export class ScoreboardEntry{
     playername: string = "Empty Scoreboard Entry";
     score: number = 0;
-    time: Date = new Date();
+    user_time: Date = new Date();
+    server_time: Date = new Date();
 
     constructor(obj: ScoreboardEntryData){
         this.playername = obj.playername;
         this.score = obj.score;
-        this.time = new Date(obj.time);
+        this.user_time = new Date(obj.time);
+        this.server_time = new Date();
     }
 
 }
