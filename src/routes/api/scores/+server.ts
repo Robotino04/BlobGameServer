@@ -2,7 +2,11 @@ import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
 
+// Yes this should be a DB but it works well up to at least
+// 100'000 entries, at which point I will happily use a DB
+console.log("Reading scores...");
 let scores: ScoreboardEntry[] = JSON.parse(readFile("./data/scores.json") ?? "{\"scores\":[]}").scores;
+console.log("Done.");
 
 function saveScores(){
   writeFile("./data/scores.json", JSON.stringify({scores: scores}));
@@ -80,8 +84,6 @@ export function GET({ url }) {
 }
 
 export async function POST({ request, cookies, getClientAddress }) {
-  handleRateLimiting(getClientAddress());
-
   const body = await request.json() as unknown;
 
   if (!isValidJSONForScoreboardEntry(body)){
@@ -92,6 +94,7 @@ export async function POST({ request, cookies, getClientAddress }) {
 
   detectImpossibleEntries(entry);
   detectObviousCheats(entry);
+  handleRateLimiting(getClientAddress());
 
   let index = scores.findIndex((value, index, obj) => {
     return value.score < entry.score;
