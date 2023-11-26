@@ -25,7 +25,7 @@
             <th>Player</th>
             <th>Score</th>
         </tr>
-        {#each data.sorted_scores as score, index}
+        {#each data.scores as score, index}
             <ScoreboardEntry {score} place={index + 1} />
         {/each}
     </table>

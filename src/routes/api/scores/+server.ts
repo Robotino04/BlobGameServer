@@ -1,7 +1,23 @@
 import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
+import * as fs from "fs";
 
-let scores: ScoreboardEntry[] = [];
+let scores: ScoreboardEntry[] = JSON.parse(readFile("./data/scores.json") ?? "{\"scores\":[]}").scores;
+
+function saveScores(){
+  writeFile("./data/scores.json", JSON.stringify({scores: scores}));
+}
+
+setInterval(() =>{
+  saveScores();
+}, 5000)
+
+function shutdownGracefully() {
+  saveScores();
+}
+
+process.on('SIGINT', shutdownGracefully);
+process.on('SIGTERM', shutdownGracefully);
 
 let submissions_on_cooldown: Map<string, Date> = new Map<string, Date>();
 
@@ -69,4 +85,15 @@ export async function POST({ request, cookies, getClientAddress }) {
   scores.push(entry);
 
   return json({ scores }, { status: 201 });
+}
+
+function readFile(path: string): string | undefined{
+  if (!fs.existsSync(path)){
+    return undefined;
+  }
+
+  return fs.readFileSync(path, {encoding: "utf8"});
+}
+function writeFile(path: string, data: string){
+  return fs.writeFileSync(path, data, {encoding: "utf8"});
 }
