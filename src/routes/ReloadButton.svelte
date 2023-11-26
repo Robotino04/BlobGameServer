@@ -3,7 +3,7 @@
 </script>
 
 <button
-    on:click={async () => {
-        invalidate('/api/scores');
+    on:click={() => {
+        invalidate("data:scores");
     }}>Reload</button
 >

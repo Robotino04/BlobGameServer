@@ -64,8 +64,19 @@ function detectImpossibleEntries(entry: ScoreboardEntry){
 }
 
 
-export function GET() {
-  return json({ scores });
+export function GET({ url }) {
+  if (url.searchParams.get('n') === null){
+    throw error(400, `Request must include number of scores as query.`);
+  }
+
+  const o = parseInt(url.searchParams.get('o') ?? "0");
+  const n = parseInt(url.searchParams.get('n')!);
+
+  if (n > 500){
+    throw error(400, `Only request up to 500 scores at once.`);
+  }
+  
+  return json({ scores: scores.slice(o, o + n), num_scores: scores.length });
 }
 
 export async function POST({ request, cookies, getClientAddress }) {
@@ -82,9 +93,17 @@ export async function POST({ request, cookies, getClientAddress }) {
   detectImpossibleEntries(entry);
   detectObviousCheats(entry);
 
-  scores.push(entry);
+  let index = scores.findIndex((value, index, obj) => {
+    return value.score < entry.score;
+  });
 
-  return json({ scores }, { status: 201 });
+  if (index == -1){
+    index = scores.length;
+  }
+
+  scores.splice(index, 0, entry);
+
+  return json({ entry, place: index+1 }, { status: 201 });
 }
 
 function readFile(path: string): string | undefined{
