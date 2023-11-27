@@ -1,11 +1,14 @@
-import http.client
+import requests
 import json
 import time
+import datetime
+
+SCORE_URL = "http://localhost:5173/api/scores"
+REQUEST_TOKEN_URL = "http://localhost:5173/api/game/request_token"
+AUTH_URL = "http://localhost:5173/api/game/auth"
 
 
 def get_discord_tokens():
-    conn = http.client.HTTPConnection("localhost", 5173)
-
     # get exchange_token
     headersList = {
         "Accept": "*/*",
@@ -14,16 +17,17 @@ def get_discord_tokens():
 
     payload = ""
 
-    conn.request("GET", "/api/game/request_token", payload, headersList)
-    response = conn.getresponse()
-    result = response.read()
+    response = requests.request(
+        "GET", REQUEST_TOKEN_URL, data=payload, headers=headersList
+    )
+    result = response.content
 
     result_json = json.loads(result.decode("utf-8"))
 
     import webbrowser
 
     webbrowser.open(
-        f'http://localhost:5173/api/game/auth?state={result_json["exchange_token"]}',
+        f'{AUTH_URL}?state={result_json["exchange_token"]}',
         new=2,
     )
     # get tokens
@@ -37,18 +41,41 @@ def get_discord_tokens():
     payload = result.decode("utf-8")
 
     while True:
-        conn = http.client.HTTPConnection("localhost", 5173)
-        conn.request("POST", "/api/game/request_token", payload, headersList)
-        response = conn.getresponse()
-        result = response.read()
-        if response.status != 202:
+        response = requests.request(
+            "POST", REQUEST_TOKEN_URL, data=payload, headers=headersList
+        )
+        result = response.content
+        if response.status_code != 202:
             break
 
         time.sleep(0.1)
 
-    print(response.status)
+    print(response.status_code)
     print(result.decode("utf-8"))
-    return response
+    return json.loads(result.decode("utf-8"))
 
 
-get_discord_tokens()
+def post_score(score, access_token):
+    headersList = {
+        "Accept": "*/*",
+        "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+        "Content-Type": "application/json",
+    }
+
+    payload = json.dumps(
+        {
+            "discord_access_token": access_token,
+            "score": score,
+            "time": str(datetime.datetime.now()),
+        }
+    )
+
+    response = requests.request("POST", SCORE_URL, data=payload, headers=headersList)
+    result = response.content
+
+    print(result.decode("utf-8"))
+
+
+tokens = get_discord_tokens()
+access_token = tokens["access_token"]
+post_score(2500, access_token)
