@@ -16,7 +16,7 @@
     <td class="place place_other">{place}.</td>
     {/if}
 
-    <td class="player_name">{score.playername}</td>
+    <td class="player_name">{score.username}</td>
     <td class="score">{score.score}</td>
 </tr>
 

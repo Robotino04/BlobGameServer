@@ -1,24 +1,34 @@
 import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
-import { isDiscordUserInfo, type DiscordUserInfo } from "$lib/discordAuth.js";
+import { isDiscordUserInfo } from "$lib/discordAuth.js";
+import { Database } from "sqlite3";
 
-// Yes this should be a DB but it works well up to at least
-// 100'000 entries, at which point I will happily use a DB
-console.log("Reading scores...");
-let scores: ScoreboardEntry[] = JSON.parse(readFile("./data/scores.json") ?? "{\"scores\":[]}").scores;
-console.log("Done.");
+const db = new Database("./data/db.sqlite", (err) => {
+    if (err !== null) {
+        console.error(`!! Database connection failed. (${err.message})`);
+        return;
+    }
+    console.log('Connected to SQlite database.');
 
-function saveScores() {
-    writeFile("./data/scores.json", JSON.stringify({ scores: scores }));
-}
+    db.run(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" }));
+});
 
-setInterval(() => {
-    saveScores();
-}, 5000)
+const queries = {
+    getTopScores: db.prepare(fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" })),
+    insertScore: db.prepare(fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" })),
+    getPlaceOfNewestScoreByPlayer: db.prepare(fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" })),
+    getNumScores: db.prepare(fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" })),
+};
 
 function shutdownGracefully() {
-    saveScores();
+    db.close((err) => {
+        if (err !== null) {
+            console.error(`!! Closing DB connection failed. (${err.message})`);
+            return;
+        }
+        console.log('Disconnected from SQlite database.');
+    });
 }
 
 process.on('SIGINT', shutdownGracefully);
@@ -63,13 +73,12 @@ function detectImpossibleEntries(entry: ScoreboardEntry) {
         throw error(400, "Score cannot be <= 0.");
     }
 
-    if (entry.playername.length < MIN_PLAYERNAME_LENGTH) {
+    if (entry.username.length < MIN_PLAYERNAME_LENGTH) {
         throw error(400, `Player name is too short. Use at least ${MIN_PLAYERNAME_LENGTH} characters.`);
     }
 }
 
-
-export function GET({ url }) {
+export async function GET({ url }) {
     if (url.searchParams.get('n') === null) {
         throw error(400, `Request must include number of scores as query.`);
     }
@@ -81,7 +90,29 @@ export function GET({ url }) {
         throw error(400, `Only request up to 500 scores at once.`);
     }
 
-    return json({ scores: scores.slice(o, o + n), num_scores: scores.length });
+    let extractedRows = await new Promise<unknown[]>((resolve, reject) => {
+        queries.getTopScores.all([o, n], (err, rows) => {
+            if (err !== null) {
+                console.error(err.message);
+                reject(err);
+                return;
+            }
+            resolve(rows);
+        });
+    });
+
+    let num_scores = await new Promise<unknown>((resolve, reject) => {
+        queries.getNumScores.all((err, row: any) => {
+            if (err !== null) {
+                console.error(err.message);
+                reject(err);
+                return;
+            }
+            resolve(row[0]["COUNT(*)"]);
+        });
+    });
+
+    return json({ scores: extractedRows, num_scores });
 }
 
 function containsAccessToken(obj: any): obj is { discord_access_token: string } {
@@ -112,32 +143,29 @@ export async function POST({ request, cookies, getClientAddress }) {
     }
 
     var entry = new ScoreboardEntry(body);
-    entry.player_id = userInfoBody.id;
-    entry.playername = userInfoBody.global_name;
+    entry.user_id = userInfoBody.id;
+    entry.username = userInfoBody.global_name;
 
     detectImpossibleEntries(entry);
     detectObviousCheats(entry);
 
-    let index = scores.findIndex((value, index, obj) => {
-        return value.score < entry.score;
+    let place: unknown = -1;
+
+    db.wait()
+    place = await new Promise<unknown>((resolve, reject) => {
+        db.serialize(() => {
+            queries.insertScore.run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' ')]);
+
+            queries.getPlaceOfNewestScoreByPlayer.get([entry.user_id], (err, row: any) => {
+                if (err !== null) {
+                    console.error(err.message);
+                    reject(err);
+                    return;
+                }
+                resolve(row["place"]);
+            });
+        });
     });
 
-    if (index == -1) {
-        index = scores.length;
-    }
-
-    scores.splice(index, 0, entry);
-
-    return json({ entry, place: index + 1 }, { status: 201 });
-}
-
-function readFile(path: string): string | undefined {
-    if (!fs.existsSync(path)) {
-        return undefined;
-    }
-
-    return fs.readFileSync(path, { encoding: "utf8" });
-}
-function writeFile(path: string, data: string) {
-    return fs.writeFileSync(path, data, { encoding: "utf8" });
+    return json({ entry, place }, { status: 201 });
 }

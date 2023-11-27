@@ -6,8 +6,8 @@ export interface ScoreboardEntryData {
 }
 
 export class ScoreboardEntry{
-    playername: string = "Empty Scoreboard Entry";
-    player_id: string = "No ID";
+    username: string = "Empty Scoreboard Entry";
+    user_id: string = "No ID";
     score: number = 0;
     user_time: Date = new Date();
     server_time: Date = new Date();
@@ -17,7 +17,6 @@ export class ScoreboardEntry{
         this.user_time = new Date(obj.time);
         this.server_time = new Date();
     }
-
 }
 export function isValidJSONForScoreboardEntry(json: any): json is ScoreboardEntryData{
     return (

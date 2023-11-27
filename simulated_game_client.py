@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import datetime
+import random
 
 SCORE_URL = "http://localhost:5173/api/scores"
 REQUEST_TOKEN_URL = "http://localhost:5173/api/game/request_token"
@@ -78,4 +79,5 @@ def post_score(score, access_token):
 
 tokens = get_discord_tokens()
 access_token = tokens["access_token"]
-post_score(2500, access_token)
+for _ in range(1):
+    post_score(random.randint(4000, 5000), access_token)
