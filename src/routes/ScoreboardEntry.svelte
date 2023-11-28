@@ -1,23 +1,18 @@
 <script lang="ts">
     import type { ScoreboardEntry } from "$lib/ScoreboardEntry";
 
-    export let score: ScoreboardEntry;
-    export let place: number;
+    export let entry: ScoreboardEntry;
 </script>
 
 <tr>
-    {#if place == 1}
-    <td class="place place_1">{place}.</td>
-    {:else if place == 2}
-    <td class="place place_2">{place}.</td>
-    {:else if place == 3}
-    <td class="place place_3">{place}.</td>
+    {#if entry.place <= 3}
+    <td class={`place place_${entry.place}`}>{entry.place}.</td>
     {:else}
-    <td class="place place_other">{place}.</td>
+    <td class="place place_other">{entry.place}.</td>
     {/if}
 
-    <td class="player_name">{score.username}</td>
-    <td class="score">{score.score}</td>
+    <td class="player_name">{entry.username}</td>
+    <td class="score">{entry.score}</td>
 </tr>
 
 <style>

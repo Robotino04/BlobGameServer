@@ -11,6 +11,7 @@ export class ScoreboardEntry{
     score: number = 0;
     user_time: Date = new Date();
     server_time: Date = new Date();
+    place: number = -1;
 
     constructor(obj: ScoreboardEntryData){
         this.score = obj.score;

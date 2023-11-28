@@ -20,6 +20,10 @@
     export let data: PageData;
 
     let baseEntry: number = parseInt($page.url.searchParams.get("o") ?? "0");
+
+    if ($page.url.searchParams.get("n") === null) {
+        $page.url.searchParams.set("n", "30");
+    }
 </script>
 
 {#if data.user === null}
@@ -43,8 +47,8 @@
             <th class="player">Player</th>
             <th class="score">Score</th>
         </tr>
-        {#each data.scores as score, index}
-            <ScoreboardEntry {score} place={index + 1 + baseEntry} />
+        {#each data.scores as entry}
+            <ScoreboardEntry entry={entry} />
         {/each}
     </table>
     {#if data.scores.length == 0}
@@ -56,7 +60,7 @@
     <ListPageSelector
         bind:baseEntry
         numEntries={data.num_scores}
-        numEntriesPerPage={parseInt($page.url.searchParams.get("n") ?? "10")}
+        numEntriesPerPage={parseInt($page.url.searchParams.get("n") ?? "30")}
     />
     <ReloadButton />
 </main>
