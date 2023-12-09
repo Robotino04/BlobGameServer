@@ -13,8 +13,8 @@ export class DiscordUserInfo {
     banner_color: string;
     mfa_enabled: boolean;
     locale: string;
-    email: string
-    verified: boolean;
+    // email: string
+    // verified: boolean;
 }
 
 export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
@@ -31,9 +31,9 @@ export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
         // typeof obj.avatar_decoration_data == "unknown" &&
         typeof obj.banner_color == "string" &&
         typeof obj.mfa_enabled == "boolean" &&
-        typeof obj.locale == "string" &&
-        typeof obj.email == "string" &&
-        typeof obj.verified == "boolean";
+        typeof obj.locale == "string";
+        // typeof obj.email == "string" &&
+        // typeof obj.verified == "boolean";
 }
 
 const DISCORD_CLIENT_ID: string = import.meta.env.VITE_DISCORD_CLIENT_ID;
