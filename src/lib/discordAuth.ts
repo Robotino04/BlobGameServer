@@ -49,7 +49,7 @@ export async function turnCodeToTokens(returnCode: string, apiEndpoint: string =
         grant_type: 'authorization_code',
         redirect_uri: apiEndpoint,
         code: returnCode!,
-        scope: 'identify email guilds'
+        scope: 'identify'
     };
 
     // performing a Fetch request to Discord's token endpoint

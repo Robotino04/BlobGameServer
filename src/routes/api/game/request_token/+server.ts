@@ -72,12 +72,12 @@ export async function GET({ url, request, cookies }) {
 }
 
 export async function POST({ url, request }) {
-    const data = await request.json();
-    if (data.exchange_token === undefined) {
-        throw redirect(302, "/");
+    const exchange_token = url.searchParams.get("exchange_token");
+    if (exchange_token === null){
+        return new Response(null, { status: 400 });
     }
 
-    const exchange_data = exchanging_tokens.get(data.exchange_token);
+    const exchange_data = exchanging_tokens.get(exchange_token);
     if (exchange_data === undefined) {
         return new Response(null, { status: 404 });
     }
@@ -86,7 +86,7 @@ export async function POST({ url, request }) {
         return new Response(null, { status: 202 });
     }
 
-    exchanging_tokens.delete(data.exchange_token);
+    exchanging_tokens.delete(exchange_token);
 
     return json(tokens);
 }

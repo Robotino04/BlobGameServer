@@ -4,8 +4,8 @@ const DISCORD_CLIENT_ID: string = import.meta.env.VITE_DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET: string = import.meta.env.VITE_DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI: string = import.meta.env.VITE_DISCORD_REDIRECT_URI;
 
-export async function GET({ url, cookies }) {
-  const discord_refresh_token = url.searchParams.get('code');
+export async function POST({ url, request}) {
+  const discord_refresh_token = (await request.formData()).get('token')?.valueOf() as string;
   if (!discord_refresh_token) {
     return json({ error: 'No refresh token found' }, { status: 500 });
   }
@@ -22,22 +22,17 @@ export async function GET({ url, cookies }) {
   };
 
   // performing a Fetch request to Discord's token endpoint
-  const request = await fetch('https://discord.com/api/oauth2/token', {
+  const dc_request = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
     body: new URLSearchParams(dataObject),
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
 
-  const response = await request.json();
+  const response = await dc_request.json();
 
   if (response.error) {
     return json({ error: response.error }, { status: 500 });
   }
 
-  // redirect user to front page with cookies set
-  const access_token_expires_in = new Date(Date.now() + response.expires_in); // 10 minutes
-  const refresh_token_expires_in = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-  cookies.set("discord_access_token", response.access_token, { expires: access_token_expires_in, path: "/" });
-  cookies.set("discord_refresh_token", response.refresh_token, { expires: refresh_token_expires_in, path: "/" });
   return json({ discord_access_token: response.access_token })
 }

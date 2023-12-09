@@ -46,7 +46,6 @@ const MIN_PLAYERNAME_LENGTH = 4;
 
 
 function handleRateLimiting(clientAddress: string) {
-    return;
     if (submissions_on_cooldown.get(clientAddress) !== undefined) {
         let time_since_submission = (new Date().getTime() - submissions_on_cooldown.get(clientAddress)!.getTime());
 
