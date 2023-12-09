@@ -3,6 +3,7 @@ import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardE
 import * as fs from "fs";
 import { isDiscordUserInfo } from "$lib/discordAuth.js";
 import { Database } from "sqlite3";
+import { allGamemodes } from "$lib/Gamemode.js";
 
 const db = new Database("./data/db.sqlite", (err) => {
     if (err !== null) {
@@ -19,6 +20,8 @@ const queries = {
     insertScore: db.prepare(fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" })),
     getPlaceOfNewestScoreByPlayer: db.prepare(fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" })),
     getNumScores: db.prepare(fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" })),
+    getTopScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" })),
+    getNumScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" })),
 };
 
 function shutdownGracefully() {
@@ -43,6 +46,7 @@ const MIN_PLAYERNAME_LENGTH = 4;
 
 
 function handleRateLimiting(clientAddress: string) {
+    return;
     if (submissions_on_cooldown.get(clientAddress) !== undefined) {
         let time_since_submission = (new Date().getTime() - submissions_on_cooldown.get(clientAddress)!.getTime());
 
@@ -85,31 +89,65 @@ export async function GET({ url }) {
 
     const o = parseInt(url.searchParams.get('o') ?? "0");
     const n = parseInt(url.searchParams.get('n')!);
+    let gamemode = url.searchParams.get('gamemode');
 
     if (n > 500) {
         throw error(400, `Only request up to 500 scores at once.`);
     }
+    if (gamemode === "global"){
+        gamemode = null;
+    }
+    
+    if (gamemode !== null) {
+        if (!allGamemodes.includes(gamemode as any)) {
+            throw error(400, `Gamemode must be one of ${allGamemodes.join(", ")}.`);
+        }
+    }
 
     let extractedRows = await new Promise<unknown[]>((resolve, reject) => {
-        queries.getTopScores.all([o, n], (err, rows) => {
-            if (err !== null) {
-                console.error(err.message);
-                reject(err);
-                return;
-            }
-            resolve(rows);
-        });
+        if (gamemode === null) {
+            queries.getTopScores.all([o, n], (err, rows) => {
+                if (err !== null) {
+                    console.error(err.message);
+                    reject(err);
+                    return;
+                }
+                resolve(rows);
+            });
+        }
+        else {
+            queries.getTopScoresOfGamemode.all([gamemode, o, n], (err, rows) => {
+                if (err !== null) {
+                    console.error(err.message);
+                    reject(err);
+                    return;
+                }
+                resolve(rows);
+            });
+        }
     });
 
     let num_scores = await new Promise<unknown>((resolve, reject) => {
-        queries.getNumScores.all((err, row: any) => {
-            if (err !== null) {
-                console.error(err.message);
-                reject(err);
-                return;
-            }
-            resolve(row[0]["COUNT(*)"]);
-        });
+        if (gamemode === null) {
+            queries.getNumScores.all((err, row: any) => {
+                if (err !== null) {
+                    console.error(err.message);
+                    reject(err);
+                    return;
+                }
+                resolve(row[0]["COUNT(*)"]);
+            });
+        }
+        else {
+            queries.getNumScoresOfGamemode.all([gamemode], (err, row: any) => {
+                if (err !== null) {
+                    console.error(err.message);
+                    reject(err);
+                    return;
+                }
+                resolve(row[0]["COUNT(*)"]);
+            });
+        }
     });
 
     return json({ scores: extractedRows, num_scores });
@@ -149,12 +187,10 @@ export async function POST({ request, cookies, getClientAddress }) {
     detectImpossibleEntries(entry);
     detectObviousCheats(entry);
 
-    let place: unknown = -1;
-
     db.wait()
-    place = await new Promise<unknown>((resolve, reject) => {
+    entry.place = await new Promise<number>((resolve, reject) => {
         db.serialize(() => {
-            queries.insertScore.run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' ')]);
+            queries.insertScore.run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
 
             queries.getPlaceOfNewestScoreByPlayer.get([entry.user_id], (err, row: any) => {
                 if (err !== null) {
@@ -167,5 +203,5 @@ export async function POST({ request, cookies, getClientAddress }) {
         });
     });
 
-    return json({ entry, place }, { status: 201 });
+    return json(entry, { status: 201 });
 }

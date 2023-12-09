@@ -1,9 +1,11 @@
-<script>
+<script lang="ts">
     import { invalidate } from "$app/navigation";
+
+    export let updateValue: any;
 </script>
 
 <button
     on:click={() => {
-        invalidate("data:scores");
+        updateValue = updateValue;
     }}>Reload</button
 >

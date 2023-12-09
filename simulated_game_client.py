@@ -8,6 +8,7 @@ SCORE_URL = "http://localhost:5173/api/scores"
 REQUEST_TOKEN_URL = "http://localhost:5173/api/game/request_token"
 AUTH_URL = "http://localhost:5173/api/game/auth"
 
+gamemodes = ["classic", "toasted"]
 
 def get_discord_tokens():
     # get exchange_token
@@ -56,7 +57,7 @@ def get_discord_tokens():
     return json.loads(result.decode("utf-8"))
 
 
-def post_score(score, access_token):
+def post_score(score, access_token, gm):
     headersList = {
         "Accept": "*/*",
         "User-Agent": "Thunder Client (https://www.thunderclient.com)",
@@ -68,6 +69,7 @@ def post_score(score, access_token):
             "discord_access_token": access_token,
             "score": score,
             "time": str(datetime.datetime.now()),
+            "gamemode": gm
         }
     )
 
@@ -80,4 +82,4 @@ def post_score(score, access_token):
 tokens = get_discord_tokens()
 access_token = tokens["access_token"]
 for _ in range(1):
-    post_score(random.randint(4000, 5000), access_token)
+    post_score(random.randint(1, 5000), access_token, random.choice(gamemodes))
