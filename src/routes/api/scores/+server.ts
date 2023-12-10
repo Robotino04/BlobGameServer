@@ -2,27 +2,42 @@ import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
 import { isDiscordUserInfo } from "$lib/discordAuth.js";
-import { Database } from "sqlite3";
+import sqlite3 from "sqlite3";
 import { allGamemodes, gamemodeScoreMinima } from "$lib/Gamemode.js";
+import { building } from "$app/environment";
 
-const db = new Database("./data/db.sqlite", (err) => {
-    if (err !== null) {
-        console.error(`!! Database connection failed. (${err.message})`);
-        return;
-    }
-    console.log('Connected to SQlite database.');
+const { Database } = sqlite3;
 
-    db.run(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" }));
-});
-
-const queries = {
-    getTopScores: db.prepare(fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" })),
-    insertScore: db.prepare(fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" })),
-    getPlaceOfNewestScoreByPlayer: db.prepare(fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" })),
-    getNumScores: db.prepare(fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" })),
-    getTopScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" })),
-    getNumScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" })),
+let db: sqlite3.Database;
+let queries: {
+    getTopScores: sqlite3.Statement;
+    insertScore: sqlite3.Statement;
+    getPlaceOfNewestScoreByPlayer: sqlite3.Statement;
+    getNumScores: sqlite3.Statement;
+    getTopScoresOfGamemode: sqlite3.Statement;
+    getNumScoresOfGamemode: sqlite3.Statement;
 };
+
+if (!building){
+    db = new Database("./data/db.sqlite", (err) => {
+        if (err !== null) {
+            console.error(`!! Database connection failed. (${err.message})`);
+            return;
+        }
+        console.log('Connected to SQlite database.');
+
+        db.run(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" }));
+    });
+
+    queries = {
+        getTopScores: db.prepare(fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" })),
+        insertScore: db.prepare(fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" })),
+        getPlaceOfNewestScoreByPlayer: db.prepare(fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" })),
+        getNumScores: db.prepare(fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" })),
+        getTopScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" })),
+        getNumScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" })),
+    };
+}
 
 function shutdownGracefully() {
     db.close((err) => {
@@ -34,8 +49,10 @@ function shutdownGracefully() {
     });
 }
 
-process.on('SIGINT', shutdownGracefully);
-process.on('SIGTERM', shutdownGracefully);
+if (!building){
+    process.on('SIGINT', shutdownGracefully);
+    process.on('SIGTERM', shutdownGracefully);
+}
 
 let submissions_on_cooldown: Map<string, Date> = new Map<string, Date>();
 
@@ -72,7 +89,7 @@ function detectImpossibleEntries(entry: ScoreboardEntry) {
         throw error(400, "Too out of date.");
     }
 
-    if (entry.score <= gamemodeScoreMinima[entry.gamemode]) {
+    if (entry.score < gamemodeScoreMinima[entry.gamemode]) {
         throw error(400, "Score is too low.");
     }
 
