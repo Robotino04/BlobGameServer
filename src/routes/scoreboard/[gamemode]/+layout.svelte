@@ -1,13 +1,14 @@
 <script lang="ts">
     import { allGamemodes } from "$lib/Gamemode";
     import { titleCase } from "$lib/stringUtils";
+    import { base } from '$app/paths';
 </script>
 
 <nav class="header">
     <ol>
-        <li><a href="/scoreboard/global">Global</a></li>
+        <li><a href= "{base}/scoreboard/global">Global</a></li>
         {#each allGamemodes as gamemode}
-            <li><a href="/scoreboard/{gamemode}/">{titleCase(gamemode)}</a></li>
+            <li><a href="{base}/scoreboard/{gamemode}/">{titleCase(gamemode)}</a></li>
         {/each}
     </ol>
 </nav>

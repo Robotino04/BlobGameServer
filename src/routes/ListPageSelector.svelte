@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { invalidate } from "$app/navigation";
     import { page } from "$app/stores";
 
     export let baseEntry: number;
@@ -15,10 +14,7 @@
     async function setBaseEntry(newBase: number){
         newBase = clampToPages(newBase);
         $page.url.searchParams.set("o", newBase.toString());
-        const dataLoadPromise = invalidate("data:scores");
         window.history.replaceState({}, "", $page.url.toString());
-        
-        await dataLoadPromise;
         baseEntry = newBase;
     }
 </script>

@@ -2,16 +2,17 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { PageData } from "./$types";
+    import { base } from "$app/paths";
 
     export let data: PageData;
 
     onMount(() => {
-        goto("/scoreboard/");
+        goto(base + "/scoreboard/");
     });
 </script>
 
 {#if data.user === null}
-    <a title="Discord OAuth2" href="api/discord/auth"
+    <a title="Discord OAuth2" href="{base}/api/discord/auth"
         >Authenticate via Discord</a
     >
 {:else}
@@ -21,5 +22,5 @@
             .avatar}.png"
     />
     <h1>{data.user.global_name}</h1>
-    <a title="Sign out" href="api/discord/signout">Sign Out</a>
+    <a title="Sign out" href="{base}/api/discord/signout">Sign Out</a>
 {/if}

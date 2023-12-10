@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { invalidate } from "$app/navigation";
-
     export let updateValue: any;
 </script>
 

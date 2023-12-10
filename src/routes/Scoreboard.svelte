@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { base } from "$app/paths";
     import ListPageSelector from "./ListPageSelector.svelte";
     import ReloadButton from "./ReloadButton.svelte";
 
@@ -12,7 +13,7 @@
         numEntriesPerPage: number,
     ) => {
         const res = await fetch(
-            `/api/scores?n=${numEntriesPerPage}&o=${baseEntry}&gamemode=${gamemode.toLowerCase()}`,
+            `${base}/api/scores?n=${numEntriesPerPage}&o=${baseEntry}&gamemode=${gamemode.toLowerCase()}`,
         );
         const value = await res.json();
 
