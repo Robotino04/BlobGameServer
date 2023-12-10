@@ -1,7 +1,6 @@
 <script lang="ts">
     import { base } from "$app/paths";
     import ListPageSelector from "./ListPageSelector.svelte";
-    import ReloadButton from "./ReloadButton.svelte";
 
     import ScoreboardEntry from "./ScoreboardEntry.svelte";
 
@@ -53,7 +52,6 @@
 {:catch error}
     <p style="color: red">Couldn't load scores ({error.message})</p>
 {/await}
-<ReloadButton bind:updateValue={gamemode} />
 
 <style>
     table {

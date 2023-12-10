@@ -15,7 +15,7 @@
     <Scoreboard
         baseEntry={parseInt($page.url.searchParams.get("o") ?? "0")}
         numEntriesPerPage={parseInt($page.url.searchParams.get("n") ?? "30")}
-        bind:gamemode={data.gamemode}
+        gamemode={data.gamemode}
     />
 </main>
 
