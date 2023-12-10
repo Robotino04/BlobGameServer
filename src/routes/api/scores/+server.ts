@@ -40,9 +40,9 @@ const SUBMISSION_TIMEOUT_MS = 10 * 1000; // 1 minute
 const MIN_PLAYERNAME_LENGTH = 4;
 
 
-function handleRateLimiting(clientAddress: string) {
-    if (submissions_on_cooldown.get(clientAddress) !== undefined) {
-        let time_since_submission = (new Date().getTime() - submissions_on_cooldown.get(clientAddress)!.getTime());
+function handleRateLimiting(userID: string) {
+    if (submissions_on_cooldown.get(userID) !== undefined) {
+        let time_since_submission = (new Date().getTime() - submissions_on_cooldown.get(userID)!.getTime());
 
         if (time_since_submission < SUBMISSION_TIMEOUT_MS) {
             let time_left = (SUBMISSION_TIMEOUT_MS - time_since_submission) / 1000;
@@ -53,7 +53,7 @@ function handleRateLimiting(clientAddress: string) {
         }
     }
 
-    submissions_on_cooldown.set(clientAddress, new Date());
+    submissions_on_cooldown.set(userID, new Date());
 }
 
 function detectObviousCheats(entry: ScoreboardEntry) {
@@ -134,8 +134,7 @@ export async function POST({ request, cookies, getClientAddress }) {
 
     const body = await request.json();
 
-    handleRateLimiting(getClientAddress());
-
+    
     const userInfo = await fetch(`${DISCORD_API_URL}/users/@me`, {
         headers: { 'Authorization': `Bearer ${discord_access_token}` }
     });
@@ -144,6 +143,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     if (userInfo.status !== 200 || !isDiscordUserInfo(userInfoBody)) {
         throw error(500, `Discord said no. Maybe refresh your access token. (${JSON.stringify(userInfoBody)})`);
     }
+    handleRateLimiting(userInfoBody.id);
 
     if (!isValidJSONForScoreboardEntry(body)) {
         throw error(400, "Invalid data layout.");
