@@ -1,6 +1,6 @@
 # BlobGameServer
 
-The server code for a small Melba Toast fan game inspired by SUIKA.
+The server code for Toasted!, a small Melba Toast fan game inspired by SUIKA.
 
 ## Developing
 
