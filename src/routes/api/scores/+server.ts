@@ -11,6 +11,7 @@ let queries: Map<string, string> = new Map<string, string>();
 
 if (!building) {
     db = new DatabaseConstructor("./data/db.sqlite");
+    db.prepare(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" })).run();
 
     queries.set("getTopScores", fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" }));
     queries.set("insertScore", fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" }));
