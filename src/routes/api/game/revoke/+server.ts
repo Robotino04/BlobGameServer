@@ -5,13 +5,14 @@ const DISCORD_CLIENT_SECRET: string = import.meta.env.VITE_DISCORD_CLIENT_SECRET
 const DISCORD_REDIRECT_URI: string = import.meta.env.VITE_DISCORD_REDIRECT_URI;
 
 export async function POST({ request }) {
-  const discord_access_token = (await request.formData()).get('token')?.valueOf() as string;
+  var discord_access_token = request.headers.get("Authorization");
   if (!discord_access_token) {
-    return json({ error: 'No refresh token found' }, { status: 500 });
+    return json({ error: 'No access token found' }, { status: 400 });
   }
+  discord_access_token = discord_access_token.split(" ")[1];
+
 
   // initializing data object to be pushed to Discord's token endpoint.
-  // quite similar to what we set up in callback.js, expect with different grant_type.
   const dataObject = {
     client_id: DISCORD_CLIENT_ID,
     client_secret: DISCORD_CLIENT_SECRET,

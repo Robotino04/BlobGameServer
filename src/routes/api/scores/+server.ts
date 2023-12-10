@@ -3,7 +3,7 @@ import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardE
 import * as fs from "fs";
 import { isDiscordUserInfo } from "$lib/discordAuth.js";
 import { Database } from "sqlite3";
-import { allGamemodes } from "$lib/Gamemode.js";
+import { allGamemodes, gamemodeScoreMinima } from "$lib/Gamemode.js";
 
 const db = new Database("./data/db.sqlite", (err) => {
     if (err !== null) {
@@ -72,8 +72,8 @@ function detectImpossibleEntries(entry: ScoreboardEntry) {
         throw error(400, "Too out of date.");
     }
 
-    if (entry.score <= 0) {
-        throw error(400, "Score cannot be <= 0.");
+    if (entry.score <= gamemodeScoreMinima[entry.gamemode]) {
+        throw error(400, "Score is too low.");
     }
 
     if (entry.username.length < MIN_PLAYERNAME_LENGTH) {
