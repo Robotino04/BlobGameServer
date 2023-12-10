@@ -4,9 +4,9 @@ import time
 import datetime
 import random
 
-SCORE_URL = "http://localhost:5173/api/scores"
-REQUEST_TOKEN_URL = "http://localhost:5173/api/game/request_token"
-AUTH_URL = "http://localhost:5173/api/game/auth"
+SCORE_URL = "http://localhost:5173/toasted/api/scores"
+REQUEST_TOKEN_URL = "http://localhost:5173/toasted/api/game/request_token"
+AUTH_URL = "http://localhost:5173/toasted/api/game/auth"
 
 gamemodes = ["classic", "toasted"]
 
@@ -40,11 +40,10 @@ def get_discord_tokens():
         "Content-Type": "application/json",
     }
 
-    payload = result.decode("utf-8")
 
     while True:
         response = requests.request(
-            "POST", REQUEST_TOKEN_URL, data=payload, headers=headersList
+            "POST", REQUEST_TOKEN_URL + f"?exchange_token={result_json['exchange_token']}", data=None, headers=headersList
         )
         result = response.content
         if response.status_code != 202:
@@ -62,11 +61,11 @@ def post_score(score, access_token, gm):
         "Accept": "*/*",
         "User-Agent": "Thunder Client (https://www.thunderclient.com)",
         "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
     }
 
     payload = json.dumps(
         {
-            "discord_access_token": access_token,
             "score": score,
             "time": str(datetime.datetime.now()),
             "gamemode": gm
@@ -81,5 +80,6 @@ def post_score(score, access_token, gm):
 
 tokens = get_discord_tokens()
 access_token = tokens["access_token"]
-for _ in range(1):
-    post_score(random.randint(1, 5000), access_token, random.choice(gamemodes))
+for _ in range(50):
+    post_score(random.randint(1000, 5000), access_token, random.choice(gamemodes))
+    time.sleep(10)

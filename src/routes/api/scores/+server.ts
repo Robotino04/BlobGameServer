@@ -2,54 +2,31 @@ import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
 import { isDiscordUserInfo } from "$lib/discordAuth.js";
-import sqlite3 from "sqlite3";
 import { allGamemodes, gamemodeScoreMinima } from "$lib/Gamemode.js";
 import { building } from "$app/environment";
+import DatabaseConstructor, { type Database } from "better-sqlite3";
 
-const { Database } = sqlite3;
+let db: Database;
+let queries: Map<string, string> = new Map<string, string>();
 
-let db: sqlite3.Database;
-let queries: {
-    getTopScores: sqlite3.Statement;
-    insertScore: sqlite3.Statement;
-    getPlaceOfNewestScoreByPlayer: sqlite3.Statement;
-    getNumScores: sqlite3.Statement;
-    getTopScoresOfGamemode: sqlite3.Statement;
-    getNumScoresOfGamemode: sqlite3.Statement;
-};
+if (!building) {
+    db = new DatabaseConstructor("./data/db.sqlite");
 
-if (!building){
-    db = new Database("./data/db.sqlite", (err) => {
-        if (err !== null) {
-            console.error(`!! Database connection failed. (${err.message})`);
-            return;
-        }
-        console.log('Connected to SQlite database.');
-
-        db.run(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" }));
-    });
-
-    queries = {
-        getTopScores: db.prepare(fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" })),
-        insertScore: db.prepare(fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" })),
-        getPlaceOfNewestScoreByPlayer: db.prepare(fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" })),
-        getNumScores: db.prepare(fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" })),
-        getTopScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" })),
-        getNumScoresOfGamemode: db.prepare(fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" })),
-    };
+    queries.set("getTopScores", fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" }));
+    queries.set("insertScore", fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" }));
+    queries.set("getPlaceOfNewestScoreByPlayer", fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" }));
+    queries.set("getNumScores", fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" }));
+    queries.set("getTopScoresOfGamemode", fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" }));
+    queries.set("getNumScoresOfGamemode", fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" }));
 }
 
 function shutdownGracefully() {
-    db.close((err) => {
-        if (err !== null) {
-            console.error(`!! Closing DB connection failed. (${err.message})`);
-            return;
-        }
-        console.log('Disconnected from SQlite database.');
-    });
+    db.close();
+    console.log("DB connection closed.");
+    process.exit(0);
 }
 
-if (!building){
+if (!building) {
     process.on('SIGINT', shutdownGracefully);
     process.on('SIGTERM', shutdownGracefully);
 }
@@ -110,63 +87,36 @@ export async function GET({ url }) {
     if (n > 500) {
         throw error(400, `Only request up to 500 scores at once.`);
     }
-    if (gamemode === "global"){
+    if (gamemode === "global") {
         gamemode = null;
     }
-    
+
     if (gamemode !== null) {
         if (!allGamemodes.includes(gamemode as any)) {
             throw error(400, `Gamemode must be one of ${allGamemodes.join(", ")}.`);
         }
     }
 
-    let extractedRows = await new Promise<unknown[]>((resolve, reject) => {
-        if (gamemode === null) {
-            queries.getTopScores.all([o, n], (err, rows) => {
-                if (err !== null) {
-                    console.error(err.message);
-                    reject(err);
-                    return;
-                }
-                resolve(rows);
-            });
-        }
-        else {
-            queries.getTopScoresOfGamemode.all([gamemode, o, n], (err, rows) => {
-                if (err !== null) {
-                    console.error(err.message);
-                    reject(err);
-                    return;
-                }
-                resolve(rows);
-            });
-        }
-    });
+    let rows;
 
-    let num_scores = await new Promise<unknown>((resolve, reject) => {
-        if (gamemode === null) {
-            queries.getNumScores.all((err, row: any) => {
-                if (err !== null) {
-                    console.error(err.message);
-                    reject(err);
-                    return;
-                }
-                resolve(row[0]["COUNT(*)"]);
-            });
-        }
-        else {
-            queries.getNumScoresOfGamemode.all([gamemode], (err, row: any) => {
-                if (err !== null) {
-                    console.error(err.message);
-                    reject(err);
-                    return;
-                }
-                resolve(row[0]["COUNT(*)"]);
-            });
-        }
-    });
+    if (gamemode === null) {
+        rows = db.prepare(queries.get("getTopScores")!).all([o, n]);
+    }
+    else {
+        rows = db.prepare(queries.get("getTopScoresOfGamemode")!).all([gamemode, o, n]);
+    }
 
-    return json({ scores: extractedRows, num_scores });
+    let num_scores;
+    if (gamemode === null) {
+        num_scores = db.prepare(queries.get("getNumScores")!).get();
+        num_scores = (num_scores as any)["COUNT(*)"];
+    }
+    else {
+        num_scores = db.prepare(queries.get("getNumScoresOfGamemode")!).get([gamemode]);
+        num_scores = (num_scores as any)["COUNT(*)"];
+    }
+
+    return json({ scores: rows, num_scores });
 }
 
 function containsAccessToken(obj: any): obj is { discord_access_token: string } {
@@ -175,16 +125,18 @@ function containsAccessToken(obj: any): obj is { discord_access_token: string } 
 
 const DISCORD_API_URL: string = import.meta.env.VITE_DISCORD_API_URL;
 export async function POST({ request, cookies, getClientAddress }) {
-    const body = await request.json() as unknown;
-
-    if (!containsAccessToken(body)) {
+    var discord_access_token = request.headers.get("Authorization");
+    if (!discord_access_token) {
         throw error(401, "Must include access token.");
     }
+    discord_access_token = discord_access_token.split(" ")[1];
+
+    const body = await request.json();
 
     handleRateLimiting(getClientAddress());
 
     const userInfo = await fetch(`${DISCORD_API_URL}/users/@me`, {
-        headers: { 'Authorization': `Bearer ${body.discord_access_token}` }
+        headers: { 'Authorization': `Bearer ${discord_access_token}` }
     });
     const userInfoBody = await userInfo.json();
 
@@ -203,21 +155,9 @@ export async function POST({ request, cookies, getClientAddress }) {
     detectImpossibleEntries(entry);
     detectObviousCheats(entry);
 
-    db.wait()
-    entry.place = await new Promise<number>((resolve, reject) => {
-        db.serialize(() => {
-            queries.insertScore.run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
+    db.prepare(queries.get("insertScore")!).run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
 
-            queries.getPlaceOfNewestScoreByPlayer.get([entry.user_id], (err, row: any) => {
-                if (err !== null) {
-                    console.error(err.message);
-                    reject(err);
-                    return;
-                }
-                resolve(row["place"]);
-            });
-        });
-    });
+    entry.place = db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any["place"];
 
     return json(entry, { status: 201 });
 }
