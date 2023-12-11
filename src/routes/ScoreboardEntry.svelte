@@ -26,7 +26,7 @@
         background-color: #fff;
         border-radius: 8px;
         margin-bottom: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .place {
@@ -63,7 +63,7 @@
     @media (prefers-color-scheme: dark) {
         tr {
             background-color: #333;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
         }
     }
 </style>
