@@ -2,7 +2,7 @@ import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
 import { isDiscordUserInfo } from "$lib/discordAuth.js";
-import { allGamemodes, gamemodeScoreMinima } from "$lib/Gamemode.js";
+import { allGamemodes } from "$lib/Gamemode.js";
 import { building } from "$app/environment";
 import DatabaseConstructor, { type Database } from "better-sqlite3";
 
@@ -63,12 +63,8 @@ function detectObviousCheats(entry: ScoreboardEntry) {
 }
 
 function detectImpossibleEntries(entry: ScoreboardEntry) {
-    if (Math.abs(entry.user_time.getTime() - new Date().getTime()) > MAX_OUT_OF_TIME_DIFFERENCE_MS) {
-        throw error(400, "Too out of date.");
-    }
-
-    if (entry.score < gamemodeScoreMinima[entry.gamemode]) {
-        throw error(400, "Score is too low.");
+    if (entry.score < 500) {
+        throw error(400, "Score is too low. Must be above 500.");
     }
 
     if (entry.username.length < MIN_PLAYERNAME_LENGTH) {
@@ -158,7 +154,7 @@ export async function POST({ request, cookies, getClientAddress }) {
 
     db.prepare(queries.get("insertScore")!).run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
 
-    entry.place = db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any["place"];
+    entry.place = (db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any)["place"];
 
     return json(entry, { status: 201 });
 }
