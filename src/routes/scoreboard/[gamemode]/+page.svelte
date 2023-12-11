@@ -26,5 +26,10 @@
         flex-direction: column;
         align-items: center;
         font-size: 2rem;
+        margin-top: 20px;
+    }
+
+    main h1 {
+        color: #ff3366; /* Jam color */
     }
 </style>

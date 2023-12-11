@@ -18,20 +18,45 @@
 </tr>
 
 <style>
+    tr {
+        /* display: flex; */
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .place {
+        min-width: 40px;
         text-align: right;
         padding-right: 10px;
+        font-weight: bold;
     }
 
     .place_1 {
-        color: #ffd700;
+        color: #ff3366; /* Jam color */
     }
 
     .place_2 {
-        color: #d2dee6;
+        color: #ffd700; /* Gold for 2nd place */
     }
 
     .place_3 {
-        color: #88540b;
+        color: #8b4513; /* Brown for 3rd place */
+    }
+
+    .player_name {
+        min-width: 120px;
+    }
+
+    .score {
+        min-width: 80px;
+    }
+
+    .gamemode {
+        text-transform: capitalize;
     }
 </style>

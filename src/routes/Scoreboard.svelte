@@ -55,23 +55,19 @@
 
 <style>
     table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th,
+    td {
+        padding: 12px;
         text-align: left;
-        border-style: solid;
-        border-radius: 10px;
-        border-width: 1px;
-        border-color: black;
-    }
-    .place {
-        min-width: 80px;
-    }
-    .player {
-        min-width: 200px;
-    }
-    .score {
-        min-width: 80px;
     }
 
     th {
-        padding-right: 10px;
+        background-color: #ff3366; /* Jam color */
+        color: #fff;
     }
 </style>
