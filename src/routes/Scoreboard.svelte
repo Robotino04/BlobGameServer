@@ -60,14 +60,18 @@
         margin-top: 20px;
     }
 
-    th,
-    td {
+    th, td {
         padding: 12px;
         text-align: left;
     }
 
     th {
-        background-color: #ff3366; /* Jam color */
+        background-color: var(--jam);
         color: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+        table {
+            color: #fff;
+        }
     }
 </style>

@@ -56,9 +56,8 @@
         flex-direction: row;
         margin-top: 10px;
     }
-
     button {
-        background-color: #ff3366; /* Jam color */
+        background-color: var(--jam);
         color: #fff;
         border: none;
         padding: 8px 16px;
@@ -66,10 +65,11 @@
         cursor: pointer;
         font-size: 1rem;
         transition: background-color 0.3s;
-        margin-right: 10px;
+        margin-right: 5px;
+        margin-left: 5px;
     }
 
     button:hover {
-        background-color: #e62e5c; /* Darker shade on hover */
+        background-color: var(--dark-jam);
     }
 </style>

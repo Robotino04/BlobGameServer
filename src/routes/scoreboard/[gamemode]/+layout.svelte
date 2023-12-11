@@ -48,6 +48,16 @@
     }
 
     nav.header a:hover {
-        color: #ff3366; /* Jam color on hover */
+        color: var(--jam);
+    }
+    @media (prefers-color-scheme: dark) {
+        nav.header {
+            border-color: #6c757d;
+            background-color: #333;
+        }
+
+        nav.header a {
+            color: #fff;
+        }
     }
 </style>

@@ -11,7 +11,7 @@
     });
 </script>
 
-{#if data.user === null}
+<!-- {#if data.user === null}
     <a title="Discord OAuth2" href="{base}/api/discord/auth"
         >Authenticate via Discord</a
     >
@@ -23,4 +23,4 @@
     />
     <h1>{data.user.global_name}</h1>
     <a title="Sign out" href="{base}/api/discord/signout">Sign Out</a>
-{/if}
+{/if} -->

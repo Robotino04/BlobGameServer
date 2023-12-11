@@ -4,6 +4,8 @@
 <head>
 	<meta charset="utf-8" />
 	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+	<link rel="stylesheet" href="{base}/global.css" />
+
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Toasted! Leaderboard</title>
 	%sveltekit.head%
@@ -16,13 +18,18 @@
 <style>
 	body {
 		background-color: #f9e79f;
-		/* Light yellow background for the body */
 		font-family: 'Arial', sans-serif;
 	}
 
 	p {
 		color: #555;
-		/* Dark gray for paragraph text */
+	}
+
+	@media (prefers-color-scheme: dark) {
+		body {
+			background-color: #1a1a1a;
+			color: #fff;
+		}
 	}
 </style>
 

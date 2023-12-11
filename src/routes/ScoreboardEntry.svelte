@@ -37,15 +37,15 @@
     }
 
     .place_1 {
-        color: #ff3366; /* Jam color */
+        color: var(--jam);
     }
 
     .place_2 {
-        color: #ffd700; /* Gold for 2nd place */
+        color: silver;
     }
 
     .place_3 {
-        color: #8b4513; /* Brown for 3rd place */
+        color: #CD7F32;
     }
 
     .player_name {
@@ -58,5 +58,12 @@
 
     .gamemode {
         text-transform: capitalize;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        tr {
+            background-color: #333;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
     }
 </style>

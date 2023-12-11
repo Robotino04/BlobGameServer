@@ -30,6 +30,6 @@
     }
 
     main h1 {
-        color: #ff3366; /* Jam color */
+        color: var(--jam);
     }
 </style>
