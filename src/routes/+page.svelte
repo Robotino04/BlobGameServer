@@ -1,10 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-    import type { PageData } from "./$types";
-    import { base } from "$app/paths";
-
-    export let data: PageData;
+        import { base } from "$app/paths";
 
     onMount(() => {
         goto(base + "/scoreboard/");

@@ -60,12 +60,9 @@
         margin-top: 20px;
     }
 
-    th, td {
+    th {
         padding: 12px;
         text-align: left;
-    }
-
-    th {
         background-color: var(--jam);
         color: #fff;
     }
