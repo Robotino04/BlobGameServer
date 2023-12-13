@@ -46,6 +46,7 @@ function handleRateLimiting(userID: string) {
 
         if (time_since_submission < SUBMISSION_TIMEOUT_MS) {
             let time_left = (SUBMISSION_TIMEOUT_MS - time_since_submission) / 1000;
+            console.log("rate limited");
             throw error(429, `You can only submit scores every ${SUBMISSION_TIMEOUT_MS / 1000} seconds. (${time_left}s left)`);
         }
         else {
@@ -58,16 +59,19 @@ function handleRateLimiting(userID: string) {
 
 function detectObviousCheats(entry: ScoreboardEntry) {
     if (entry.score >= MAX_SCORE) {
+        console.log("cheated score");
         throw error(403, "Impossible submission.");
     }
 }
 
 function detectImpossibleEntries(entry: ScoreboardEntry) {
     if (entry.score < 500) {
+        console.log("score too low");
         throw error(400, "Score is too low. Must be above 500.");
     }
 
     if (entry.username.length < MIN_PLAYERNAME_LENGTH) {
+        console.log("player name too short");
         throw error(400, `Player name is too short. Use at least ${MIN_PLAYERNAME_LENGTH} characters.`);
     }
 }
@@ -129,19 +133,24 @@ export async function POST({ request, cookies, getClientAddress }) {
     discord_access_token = discord_access_token.split(" ")[1];
 
     const body = await request.json();
+    console.log(discord_access_token);
+    console.log(body);
 
     
     const userInfo = await fetch(`${DISCORD_API_URL}/users/@me`, {
         headers: { 'Authorization': `Bearer ${discord_access_token}` }
     });
     const userInfoBody = await userInfo.json();
+    console.log(userInfoBody);
 
     if (userInfo.status !== 200 || !isDiscordUserInfo(userInfoBody)) {
+        console.log("discord auth error");
         throw error(500, `Discord said no. Maybe refresh your access token. (${JSON.stringify(userInfoBody)})`);
     }
     handleRateLimiting(userInfoBody.id);
 
     if (!isValidJSONForScoreboardEntry(body)) {
+        console.log("invalid data");
         throw error(400, "Invalid data layout.");
     }
 
@@ -153,8 +162,10 @@ export async function POST({ request, cookies, getClientAddress }) {
     detectObviousCheats(entry);
 
     db.prepare(queries.get("insertScore")!).run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
+    console.log("score inserted");
 
     entry.place = (db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any)["place"];
+    console.log(entry);
 
     return json(entry, { status: 201 });
 }
