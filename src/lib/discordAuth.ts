@@ -26,10 +26,10 @@ export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
         typeof obj.premium_type == "number" &&
         typeof obj.flags == "number" &&
         // typeof obj.banner == "unknown" &&
-        typeof obj.accent_color == "number" &&
+        // typeof obj.accent_color == "number" &&
         typeof obj.global_name == "string" &&
         // typeof obj.avatar_decoration_data == "unknown" &&
-        typeof obj.banner_color == "string" &&
+        // typeof obj.banner_color == "string" &&
         typeof obj.mfa_enabled == "boolean" &&
         typeof obj.locale == "string";
         // typeof obj.email == "string" &&
