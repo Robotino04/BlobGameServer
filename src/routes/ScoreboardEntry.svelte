@@ -3,6 +3,7 @@
     import { titleCase } from "$lib/stringUtils";
 
     export let entry: ScoreboardEntry;
+    export let usingGlobalNames: boolean;
 </script>
 
 <tr>
@@ -12,7 +13,7 @@
         <td class="place place_other">{entry.place}.</td>
     {/if}
 
-    <td class="player_name">{entry.username}</td>
+    <td class="player_name">{usingGlobalNames ? entry.global_name : entry.username}</td>
     <td class="score">{entry.score}</td>
     <td class="gamemode">{titleCase(entry.gamemode)}</td>
 </tr>

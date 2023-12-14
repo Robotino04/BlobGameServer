@@ -1,5 +1,6 @@
 <script lang="ts">
     import { base } from "$app/paths";
+    import HoverToggle from "./HoverToggle.svelte";
     import ListPageSelector from "./ListPageSelector.svelte";
 
     import ScoreboardEntry from "./ScoreboardEntry.svelte";
@@ -19,6 +20,8 @@
         return value;
     })(gamemode, baseEntry, numEntriesPerPage);
 
+    let usingGlobalNames = false;
+
     export let baseEntry: number;
     export let numEntriesPerPage: number;
 </script>
@@ -29,12 +32,21 @@
     <table>
         <tr>
             <th class="place">Place</th>
-            <th class="player">Player</th>
-            <th class="score">Score</th>
+            <th class="player">
+                Player
+
+                <span class="name-style-toggle">
+                    <HoverToggle bind:state={usingGlobalNames}>
+                        <span slot="hover">⚙</span>
+                        <span slot="on">Showing global names</span>
+                        <span slot="off">Showing NSHQ names</span>
+                    </HoverToggle>
+                </span>
+            </th><th class="score">Score</th>
             <th class="gamemode">Gamemode</th>
         </tr>
         {#each scores.scores as entry}
-            <ScoreboardEntry {entry} />
+            <ScoreboardEntry {entry} {usingGlobalNames} />
         {/each}
     </table>
 
@@ -66,6 +78,17 @@
         background-color: var(--jam);
         color: #fff;
     }
+
+    .name-style-toggle {
+        font-size: small;
+        position: absolute;
+        display: inline;
+        align-self: center;
+    }
+    .place{
+        width: 15%;
+    }
+
     @media (prefers-color-scheme: dark) {
         table {
             color: #fff;

@@ -9,6 +9,7 @@ export interface ScoreboardEntryData {
 
 export class ScoreboardEntry{
     username: string = "Empty Scoreboard Entry";
+    global_name: string = "Empty Scoreboard Entry";
     user_id: string = "No ID";
     score: number = 0;
     server_time: Date = new Date();

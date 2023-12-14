@@ -1,3 +1,5 @@
+import { error } from "@sveltejs/kit";
+
 export class DiscordUserInfo {
     id: string;
     username: string;
@@ -17,6 +19,15 @@ export class DiscordUserInfo {
     // verified: boolean;
 }
 
+export class  DiscordGuildMember{
+    user: unknown;
+    nick: string | null;
+    // avatar: string | null;
+    // roles: string[];
+    // joined_at: string;
+    // ...
+};
+
 export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
     return typeof obj.id == "string" &&
         typeof obj.username == "string" &&
@@ -35,6 +46,10 @@ export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
         // typeof obj.email == "string" &&
         // typeof obj.verified == "boolean";
 }
+export function isDiscordGuildMember(obj: any): obj is DiscordGuildMember {
+    return (typeof obj.nick == "string" || obj.nick == null);
+
+}
 
 const DISCORD_CLIENT_ID: string = import.meta.env.VITE_DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET: string = import.meta.env.VITE_DISCORD_CLIENT_SECRET;
@@ -49,7 +64,7 @@ export async function turnCodeToTokens(returnCode: string, apiEndpoint: string =
         grant_type: 'authorization_code',
         redirect_uri: apiEndpoint,
         code: returnCode!,
-        scope: 'identify'
+        scope: 'identify guilds.members.read'
     };
 
     // performing a Fetch request to Discord's token endpoint
@@ -61,4 +76,20 @@ export async function turnCodeToTokens(returnCode: string, apiEndpoint: string =
 
     const response = await request.json();
     return response;
+}
+
+export async function getGuildMemberInfo(token: string, server_id: string): Promise<DiscordGuildMember>{
+    // performing a Fetch request to Discord's token endpoint
+    const request = await fetch(`https://discord.com/api/v10/users/@me/guilds/${server_id}/member`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const response = await request.json() as unknown;
+    if (isDiscordGuildMember(response)){
+        return response;
+    }
+    else{
+        throw error(500, "Discord isn't telling me your username.");
+    }
 }

@@ -1,7 +1,7 @@
 import { error, json } from "@sveltejs/kit";
 import { ScoreboardEntry, isValidJSONForScoreboardEntry } from "$lib/ScoreboardEntry";
 import * as fs from "fs";
-import { isDiscordUserInfo } from "$lib/discordAuth.js";
+import { getGuildMemberInfo, isDiscordUserInfo } from "$lib/discordAuth.js";
 import { allGamemodes } from "$lib/Gamemode.js";
 import { building } from "$app/environment";
 import DatabaseConstructor, { type Database } from "better-sqlite3";
@@ -156,12 +156,30 @@ export async function POST({ request, cookies, getClientAddress }) {
 
     var entry = new ScoreboardEntry(body);
     entry.user_id = userInfoBody.id;
+    entry.global_name = userInfoBody.global_name;
     entry.username = userInfoBody.global_name;
+
+    const guildInfo = await getGuildMemberInfo(discord_access_token, "1178631485415239701");
+    if (guildInfo.nick !== null) {
+        entry.username = guildInfo.nick.replace(/\([^)]*\)/g, "").replace(/\[[^)]*\]/g, "").trim();
+        if (entry.username.length <= 5){
+            entry.username = entry.global_name;
+        }
+    }
+
+    console.log(guildInfo)
 
     detectImpossibleEntries(entry);
     detectObviousCheats(entry);
 
-    db.prepare(queries.get("insertScore")!).run([entry.username, entry.user_id, entry.score, entry.server_time.toISOString().slice(0, 19).replace('T', ' '), entry.gamemode]);
+    db.prepare(queries.get("insertScore")!).run([
+        entry.username,
+        entry.global_name,
+        entry.user_id,
+        entry.score,
+        entry.server_time.toISOString().slice(0, 19).replace('T', ' '),
+        entry.gamemode
+    ]);
     console.log("score inserted");
 
     entry.place = (db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any)["place"];
