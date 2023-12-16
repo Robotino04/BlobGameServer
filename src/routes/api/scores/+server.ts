@@ -13,12 +13,21 @@ if (!building) {
     db = new DatabaseConstructor("./data/db.sqlite");
     db.prepare(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" })).run();
 
-    queries.set("getTopScores", fs.readFileSync("./SQL/getTopScores.sql", { encoding: "utf8" }));
-    queries.set("insertScore", fs.readFileSync("./SQL/insertScore.sql", { encoding: "utf8" }));
-    queries.set("getPlaceOfNewestScoreByPlayer", fs.readFileSync("./SQL/getPlaceOfNewestScoreByPlayer.sql", { encoding: "utf8" }));
-    queries.set("getNumScores", fs.readFileSync("./SQL/getNumScores.sql", { encoding: "utf8" }));
-    queries.set("getTopScoresOfGamemode", fs.readFileSync("./SQL/getTopScoresOfGamemode.sql", { encoding: "utf8" }));
-    queries.set("getNumScoresOfGamemode", fs.readFileSync("./SQL/getNumScoresOfGamemode.sql", { encoding: "utf8" }));
+    function addQuery(name: string) {
+        queries.set(name, fs.readFileSync(`./SQL/${name}.sql`, { encoding: "utf8" }));
+    }
+    [
+        "getTopScores",
+        "insertScore",
+        "getPlaceOfNewestScoreByPlayer",
+        "getNumScores",
+        "getTopScoresOfGamemode",
+        "getNumScoresOfGamemode",
+        "getHistoricHighscoresOfGamemode",
+        "getHistoricHighscores",
+        "getNumHistoricHighscoresOfGamemode",
+        "getNumHistoricHighscores"
+    ].forEach(addQuery);
 }
 
 function shutdownGracefully() {
@@ -101,19 +110,19 @@ export async function GET({ url }) {
     let rows;
 
     if (gamemode === null) {
-        rows = db.prepare(queries.get("getTopScores")!).all([o, n]);
+        rows = db.prepare(queries.get("getHistoricHighscores")!).all([o, n]);
     }
     else {
-        rows = db.prepare(queries.get("getTopScoresOfGamemode")!).all([gamemode, o, n]);
+        rows = db.prepare(queries.get("getHistoricHighscoresOfGamemode")!).all([gamemode, o, n]);
     }
 
     let num_scores;
     if (gamemode === null) {
-        num_scores = db.prepare(queries.get("getNumScores")!).get();
+        num_scores = db.prepare(queries.get("getNumHistoricHighscores")!).get();
         num_scores = (num_scores as any)["COUNT(*)"];
     }
     else {
-        num_scores = db.prepare(queries.get("getNumScoresOfGamemode")!).get([gamemode]);
+        num_scores = db.prepare(queries.get("getNumHistoricHighscoresOfGamemode")!).get([gamemode]);
         num_scores = (num_scores as any)["COUNT(*)"];
     }
 
@@ -136,7 +145,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     console.log(discord_access_token);
     console.log(body);
 
-    
+
     const userInfo = await fetch(`${DISCORD_API_URL}/users/@me`, {
         headers: { 'Authorization': `Bearer ${discord_access_token}` }
     });
@@ -162,7 +171,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     const guildInfo = await getGuildMemberInfo(discord_access_token, "574720535888396288");
     if (guildInfo.nick !== null) {
         entry.username = guildInfo.nick.replace(/\([^)]*\)/g, "").replace(/\[[^)]*\]/g, "").trim();
-        if (entry.username.length <= 5){
+        if (entry.username.length <= 3){
             entry.username = entry.global_name;
         }
     }
