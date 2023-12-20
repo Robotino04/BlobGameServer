@@ -3,7 +3,7 @@ import { error } from "@sveltejs/kit";
 export class DiscordUserInfo {
     id: string;
     username: string;
-    avatar: string;
+    avatar: string | null;
     discriminator: string;
     public_flags: number;
     premium_type: number;
@@ -31,7 +31,7 @@ export class  DiscordGuildMember{
 export function isDiscordUserInfo(obj: any): obj is DiscordUserInfo {
     return typeof obj.id == "string" &&
         typeof obj.username == "string" &&
-        typeof obj.avatar == "string" &&
+        (typeof obj.avatar == "string" || obj.avatar == null) &&
         typeof obj.discriminator == "string" &&
         typeof obj.public_flags == "number" &&
         typeof obj.premium_type == "number" &&
