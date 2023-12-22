@@ -4,27 +4,43 @@
     import { base } from "$app/paths";
 </script>
 
-<nav class="header">
-    <ol>
-        <li><a href="{base}/scoreboard/global">Global</a></li>
-        {#each allGamemodes as gamemode}
-            <li>
-                <a href="{base}/scoreboard/{gamemode}/">{titleCase(gamemode)}</a
-                >
-            </li>
-        {/each}
-    </ol>
-</nav>
-<slot />
+<div class="container">
+    <nav class="header">
+        <ol>
+            <li><a href="{base}/scoreboard/global">Global</a></li>
+            {#each allGamemodes as gamemode}
+                <li>
+                    <a href="{base}/scoreboard/{gamemode}/"
+                        >{titleCase(gamemode)}</a
+                    >
+                </li>
+            {/each}
+        </ol>
+    </nav>
+    <slot />
+</div>
 
 <style>
-    nav.header {
+    .container{
+        max-width: 80%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        list-style-type: none;
+        flex-direction: column;
         margin: auto;
-        width: 80%;
-        border: 3px solid #ffeecc; /* Light orange border */
-        padding: 10px;
-        background-color: #fff5e1; /* Creamy background */
+        font-size: 2em;
+    }
+    nav.header {
+        width: 100%;
+        margin: auto;
+        border: 3px solid #ffeecc;
+        background-color: #fff5e1;
+        padding: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
         border-radius: 8px;
+        font-size: x-large;
     }
 
     nav.header ol {
@@ -37,8 +53,8 @@
     }
 
     nav.header li {
-        margin-right: 20px;
-        font-size: 1.2rem;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 
     nav.header a {
@@ -58,6 +74,12 @@
 
         nav.header a {
             color: #fff;
+        }
+    }
+    @media screen and (max-device-width: 640px) {
+        .container{
+            max-width: 100%;
+            font-size: 1rem;
         }
     }
 </style>

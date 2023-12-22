@@ -10,26 +10,29 @@
     }
 </script>
 
-<main>
-    <h1>{titleCase(data.gamemode)}</h1>
+<h1>{titleCase(data.gamemode)}</h1>
+<div class="sb">
     <Scoreboard
         baseEntry={parseInt($page.url.searchParams.get("o") ?? "0")}
         numEntriesPerPage={parseInt($page.url.searchParams.get("n") ?? "30")}
         gamemode={data.gamemode}
     />
-</main>
+</div>
 
 <style>
-    main {
+    .sb {
         display: flex;
         flex-wrap: wrap;
         flex-direction: column;
         align-items: center;
-        font-size: 2rem;
         margin-top: 20px;
+        width: 100%;
     }
 
-    main h1 {
+    h1 {
         color: var(--jam);
+        margin-bottom: 0;
+        margin: auto;
     }
+
 </style>

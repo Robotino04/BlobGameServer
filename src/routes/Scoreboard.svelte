@@ -67,13 +67,14 @@
 
 <style>
     table {
-        width: 80%;
+        width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
     }
 
     th {
         padding: 12px;
+        padding-left: 0;
         text-align: left;
         background-color: var(--jam);
         color: #fff;
@@ -83,15 +84,38 @@
         font-size: small;
         position: absolute;
         display: inline;
-        align-self: center;
+        transform: translateY(-25%);
+    }
+    .player {
+        text-wrap: nowrap;
+        white-space: nowrap;
+        padding-left: 0;
+    }
+
+    p {
+        width: 100%;
     }
     .place{
-        width: 15%;
+        padding-left: 12px;
+        width: 0;
     }
+
 
     @media (prefers-color-scheme: dark) {
         table {
             color: #fff;
+        }
+    }
+
+    @media screen and (max-device-width: 640px) {
+        .gamemode {
+            display: none;
+        }
+    }
+
+    @media (hover: none) {
+        .name-style-toggle {
+            display: none;
         }
     }
 </style>

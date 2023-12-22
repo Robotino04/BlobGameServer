@@ -20,9 +20,6 @@
 
 <style>
     tr {
-        /* display: flex; */
-        justify-content: space-between;
-        align-items: center;
         padding: 10px;
         background-color: #fff;
         border-radius: 8px;
@@ -31,7 +28,6 @@
     }
 
     .place {
-        min-width: 40px;
         text-align: right;
         padding-right: 10px;
         font-weight: bold;
@@ -46,15 +42,12 @@
     }
 
     .place_3 {
-        color: #CD7F32;
+        color: #cd7f32;
     }
 
     .player_name {
-        min-width: 120px;
-    }
-
-    .score {
-        min-width: 80px;
+        text-wrap: nowrap;
+        white-space: nowrap;
     }
 
     .gamemode {
@@ -65,6 +58,14 @@
         tr {
             background-color: #333;
             box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    @media screen and (max-device-width: 640px) {
+        .gamemode {
+            margin: 0;
+            padding: 0;
+            display: none;
         }
     }
 </style>

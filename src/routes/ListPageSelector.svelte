@@ -33,7 +33,7 @@
             setBaseEntry(baseEntry - numEntriesPerPage);
         }}>&LeftAngleBracket;</button
     >
-    <div>
+    <div class="current-page">
         {baseEntry / numEntriesPerPage + 1} / {Math.floor(
             numEntries / numEntriesPerPage,
         ) + 1}
@@ -55,6 +55,7 @@
         display: flex;
         flex-direction: row;
         margin-top: 10px;
+        text-align: center;
     }
     button {
         background-color: var(--jam);
@@ -63,7 +64,6 @@
         padding: 8px 16px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 1rem;
         transition: background-color 0.3s;
         margin-right: 5px;
         margin-left: 5px;
@@ -71,5 +71,10 @@
 
     button:hover {
         background-color: var(--dark-jam);
+    }
+
+    .current-page {
+        text-align: center;
+        margin: auto;
     }
 </style>
