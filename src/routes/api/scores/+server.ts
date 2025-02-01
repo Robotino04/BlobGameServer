@@ -6,28 +6,24 @@ import { allGamemodes } from "$lib/Gamemode.js";
 import { building } from "$app/environment";
 import DatabaseConstructor, { type Database } from "better-sqlite3";
 
+
+import sql_getHistoricHighscoresOfGamemode from "/SQL/getHistoricHighscoresOfGamemode.sql?raw";
+import sql_getHistoricHighscores from "/SQL/getHistoricHighscores.sql?raw";
+import sql_getNumHistoricHighscoresOfGamemode from "/SQL/getNumHistoricHighscoresOfGamemode.sql?raw";
+import sql_getNumHistoricHighscores from "/SQL/getNumHistoricHighscores.sql?raw";
+import sql_getNumScoresOfGamemode from "/SQL/getNumScoresOfGamemode.sql?raw";
+import sql_getNumScores from "/SQL/getNumScores.sql?raw";
+import sql_getPlaceOfNewestScoreByPlayer from "/SQL/getPlaceOfNewestScoreByPlayer.sql?raw";
+import sql_getTopScoresOfGamemode from "/SQL/getTopScoresOfGamemode.sql?raw";
+import sql_getTopScores from "/SQL/getTopScores.sql?raw";
+import sql_insertScore from "/SQL/insertScore.sql?raw";
+import sql_schema from "/SQL/schema.sql?raw";
+
 let db: Database;
-let queries: Map<string, string> = new Map<string, string>();
 
 if (!building) {
     db = new DatabaseConstructor("./data/db.sqlite");
-    db.prepare(fs.readFileSync("./SQL/schema.sql", { encoding: "utf8" })).run();
-
-    function addQuery(name: string) {
-        queries.set(name, fs.readFileSync(`./SQL/${name}.sql`, { encoding: "utf8" }));
-    }
-    [
-        "getTopScores",
-        "insertScore",
-        "getPlaceOfNewestScoreByPlayer",
-        "getNumScores",
-        "getTopScoresOfGamemode",
-        "getNumScoresOfGamemode",
-        "getHistoricHighscoresOfGamemode",
-        "getHistoricHighscores",
-        "getNumHistoricHighscoresOfGamemode",
-        "getNumHistoricHighscores"
-    ].forEach(addQuery);
+    db.prepare(sql_schema).run();
 }
 
 function shutdownGracefully() {
@@ -110,19 +106,19 @@ export async function GET({ url }) {
     let rows;
 
     if (gamemode === null) {
-        rows = db.prepare(queries.get("getHistoricHighscores")!).all([o, n]);
+        rows = db.prepare(sql_getHistoricHighscores).all([o, n]);
     }
     else {
-        rows = db.prepare(queries.get("getHistoricHighscoresOfGamemode")!).all([gamemode, o, n]);
+        rows = db.prepare(sql_getHistoricHighscoresOfGamemode).all([gamemode, o, n]);
     }
 
     let num_scores;
     if (gamemode === null) {
-        num_scores = db.prepare(queries.get("getNumHistoricHighscores")!).get();
+        num_scores = db.prepare(sql_getNumHistoricHighscores).get();
         num_scores = (num_scores as any)["COUNT(*)"];
     }
     else {
-        num_scores = db.prepare(queries.get("getNumHistoricHighscoresOfGamemode")!).get([gamemode]);
+        num_scores = db.prepare(sql_getNumHistoricHighscoresOfGamemode).get([gamemode]);
         num_scores = (num_scores as any)["COUNT(*)"];
     }
 
@@ -171,7 +167,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     const guildInfo = await getGuildMemberInfo(discord_access_token, "574720535888396288");
     if (guildInfo.nick !== null && guildInfo.nick !== undefined) {
         entry.username = guildInfo.nick.replace(/\([^)]*\)/g, "").replace(/\[[^)]*\]/g, "").trim();
-        if (entry.username.length <= 3){
+        if (entry.username.length <= 3) {
             entry.username = entry.global_name;
         }
     }
@@ -181,7 +177,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     detectImpossibleEntries(entry);
     detectObviousCheats(entry);
 
-    db.prepare(queries.get("insertScore")!).run([
+    db.prepare(sql_insertScore).run([
         entry.username,
         entry.global_name,
         entry.user_id,
@@ -191,7 +187,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     ]);
     console.log("score inserted");
 
-    entry.place = (db.prepare(queries.get("getPlaceOfNewestScoreByPlayer")!).get([entry.user_id]) as any)["place"];
+    entry.place = (db.prepare(sql_getPlaceOfNewestScoreByPlayer).get([entry.user_id]) as any)["place"];
     console.log(entry);
 
     return json(entry, { status: 201 });
