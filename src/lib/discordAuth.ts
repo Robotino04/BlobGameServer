@@ -1,4 +1,5 @@
 import { error } from "@sveltejs/kit";
+import { env } from "$env/dynamic/private";
 
 export class DiscordUserInfo {
     id: string;
@@ -51,16 +52,12 @@ export function isDiscordGuildMember(obj: any): obj is DiscordGuildMember {
 
 }
 
-const DISCORD_CLIENT_ID: string = import.meta.env.VITE_DISCORD_CLIENT_ID;
-const DISCORD_CLIENT_SECRET: string = import.meta.env.VITE_DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI: string = import.meta.env.VITE_DISCORD_REDIRECT_URI;
-
 export type DiscordTokenData = { access_token: string; refresh_token: string; error: number; expires_in: number };
 
-export async function turnCodeToTokens(returnCode: string, apiEndpoint: string = DISCORD_REDIRECT_URI): Promise<DiscordTokenData> {
+export async function turnCodeToTokens(returnCode: string, apiEndpoint: string = env.VITE_DISCORD_REDIRECT_URI): Promise<DiscordTokenData> {
     const dataObject = {
-        client_id: DISCORD_CLIENT_ID,
-        client_secret: DISCORD_CLIENT_SECRET,
+        client_id: env.VITE_DISCORD_CLIENT_ID,
+        client_secret: env.VITE_DISCORD_CLIENT_SECRET,
         grant_type: 'authorization_code',
         redirect_uri: apiEndpoint,
         code: returnCode!,

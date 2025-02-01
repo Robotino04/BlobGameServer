@@ -1,8 +1,8 @@
 import { turnCodeToTokens, type DiscordTokenData } from '$lib/discordAuth.js';
 import { json, redirect } from '@sveltejs/kit';
 import { onMount } from 'svelte';
+import { env } from "$env/dynamic/private";
 
-const DISCORD_REDIRECT_URI: string = import.meta.env.VITE_DISCORD_REDIRECT_URI_GAME;
 const EXCHANGE_TOKEN_EXPIRE_TIME_MS = 5 * 60 * 1000; // 5 minutes
 
 let exchanging_tokens: Map<string, {tokens: DiscordTokenData | null, request_time: Date}> = new Map;
@@ -44,7 +44,7 @@ export async function GET({ url, request, cookies }) {
         const exchange_token = url.searchParams.get('state')!;
 
         // discord return
-        const tokens = await turnCodeToTokens(returnCode, DISCORD_REDIRECT_URI);
+        const tokens = await turnCodeToTokens(returnCode, env.VITE_DISCORD_REDIRECT_URI_GAME);
 
         // redirect to front page in case of error
         if (tokens.error) {

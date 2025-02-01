@@ -5,6 +5,7 @@ import { getGuildMemberInfo, isDiscordUserInfo } from "$lib/discordAuth.js";
 import { allGamemodes } from "$lib/Gamemode.js";
 import { building } from "$app/environment";
 import DatabaseConstructor, { type Database } from "better-sqlite3";
+import { env } from "$env/dynamic/private";
 
 
 import sql_getHistoricHighscoresOfGamemode from "/SQL/getHistoricHighscoresOfGamemode.sql?raw";
@@ -129,7 +130,6 @@ function containsAccessToken(obj: any): obj is { discord_access_token: string } 
     return typeof obj.discord_access_token === "string";
 }
 
-const DISCORD_API_URL: string = import.meta.env.VITE_DISCORD_API_URL;
 export async function POST({ request, cookies, getClientAddress }) {
     var discord_access_token = request.headers.get("Authorization");
     if (!discord_access_token) {
@@ -142,7 +142,7 @@ export async function POST({ request, cookies, getClientAddress }) {
     console.log(body);
 
 
-    const userInfo = await fetch(`${DISCORD_API_URL}/users/@me`, {
+    const userInfo = await fetch(`${env.VITE_DISCORD_API_URL}/users/@me`, {
         headers: { 'Authorization': `Bearer ${discord_access_token}` }
     });
     const userInfoBody = await userInfo.json();
